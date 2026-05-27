@@ -2,20 +2,19 @@ import { google } from 'googleapis'
 import { SaleRecord } from '@/types'
 import { parseBrazilianCurrency, normalizeDate } from './formatters'
 
-const SHEET_ID = process.env.GOOGLE_SHEETS_ID!
+const SHEET_ID = process.env.GOOGLE_SHEETS_ID ?? ''
 const SHEET_RANGE = process.env.GOOGLE_SHEETS_RANGE ?? 'A1:Z1000'
 
 function getAuth() {
   return new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      private_key: (process.env.GOOGLE_PRIVATE_KEY ?? '').replace(/\\n/g, '\n'),
     },
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   })
 }
 
-// Normaliza o cabeçalho: remove acentos, espaços → underscore, lowercase
 function normalizeHeader(h: string): string {
   return h
     .toLowerCase()
@@ -25,7 +24,6 @@ function normalizeHeader(h: string): string {
     .trim()
 }
 
-// Mapeamento flexível: aceita variações de nomes de coluna
 const COLUMN_MAP: Record<string, string> = {
   email: 'email',
   e_mail: 'email',
@@ -60,11 +58,23 @@ const COLUMN_MAP: Record<string, string> = {
 }
 
 function mapHeader(h: string): string {
-  const normalized = normalizeHeader(h)
-  return COLUMN_MAP[normalized] ?? normalized
+  const norm = normalizeHeader(h)
+  return COLUMN_MAP[norm] ?? norm
 }
 
 export async function getSheetData(): Promise<SaleRecord[]> {
+  // Verifica credenciais antes de tentar conectar
+  if (
+    !SHEET_ID ||
+    !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+    !process.env.GOOGLE_PRIVATE_KEY
+  ) {
+    console.warn(
+      '[googleSheets] Credenciais não configuradas. Defina GOOGLE_SHEETS_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL e GOOGLE_PRIVATE_KEY.'
+    )
+    return []
+  }
+
   try {
     const auth = getAuth()
     const sheets = google.sheets({ version: 'v4', auth })

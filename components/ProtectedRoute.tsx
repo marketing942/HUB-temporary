@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import LoadingState from './LoadingState'
@@ -12,7 +12,8 @@ export default function ProtectedRoute({
 }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
+  // useMemo evita recriar o cliente a cada render e loop no useEffect
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -22,7 +23,7 @@ export default function ProtectedRoute({
         setLoading(false)
       }
     })
-  }, [router, supabase.auth])
+  }, [router, supabase])
 
   if (loading) return <LoadingState />
   return <>{children}</>

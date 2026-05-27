@@ -14,6 +14,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import type { ElementType } from 'react'
 import { DailySales } from '@/types'
 import { BarChart2, TrendingUp, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -28,7 +29,7 @@ interface SalesChartProps {
   unit?: string
 }
 
-const CHART_TYPES: { id: ChartType; icon: React.ElementType; label: string }[] = [
+const CHART_TYPES: { id: ChartType; icon: ElementType; label: string }[] = [
   { id: 'bar', icon: BarChart2, label: 'Barras' },
   { id: 'line', icon: TrendingUp, label: 'Linha' },
   { id: 'area', icon: Activity, label: 'Área' },
@@ -93,13 +94,13 @@ export default function SalesChart({
             <button
               key={id}
               onClick={() => setType(id)}
+              title={id}
               className={cn(
                 'p-1.5 rounded-md transition-all duration-150',
                 type === id
                   ? 'bg-cppem-green/15 text-cppem-neon'
                   : 'text-gray-700 hover:text-gray-500'
               )}
-              title={id}
             >
               <Icon className="w-3.5 h-3.5" />
             </button>
@@ -153,7 +154,7 @@ export default function SalesChart({
         ) : (
           <AreaChart {...sharedProps}>
             <defs>
-              <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={`grad-${String(dataKey)}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#22c55e" stopOpacity={0.25} />
                 <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
               </linearGradient>
@@ -173,7 +174,7 @@ export default function SalesChart({
               dataKey={String(dataKey)}
               stroke="#22c55e"
               strokeWidth={2}
-              fill={`url(#grad-${dataKey})`}
+              fill={`url(#grad-${String(dataKey)})`}
             />
           </AreaChart>
         )}

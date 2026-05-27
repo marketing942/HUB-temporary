@@ -25,8 +25,7 @@ export function calculateDashboard(records: SaleRecord[]): DashboardData {
 
   const totalVendido = records.reduce((sum, r) => sum + r.valor_venda, 0)
   const totalQuantidade = records.reduce((sum, r) => sum + r.quantidade_vendas, 0)
-  // Pega a meta mais recente
-  const metaMensal = records.find(r => r.meta_mensal > 0)?.meta_mensal ?? 0
+  const metaMensal = records.find((r) => r.meta_mensal > 0)?.meta_mensal ?? 0
   const percentualMeta = metaMensal > 0 ? (totalVendido / metaMensal) * 100 : 0
   const ticketMedio = totalQuantidade > 0 ? totalVendido / totalQuantidade : 0
 
@@ -70,4 +69,22 @@ export function calculateDashboard(records: SaleRecord[]): DashboardData {
     vendasPorDia,
     ultimaAtualizacao: new Date().toISOString(),
   }
+}
+
+export function filterByMonth(
+  records: SaleRecord[],
+  month?: string
+): SaleRecord[] {
+  if (!month) return records
+  return records.filter((r) => r.data && r.data.startsWith(month))
+}
+
+export function getAvailableMonths(records: SaleRecord[]): string[] {
+  const months = new Set<string>()
+  for (const r of records) {
+    if (r.data && r.data.length >= 7) {
+      months.add(r.data.slice(0, 7))
+    }
+  }
+  return [...months].sort().reverse()
 }
