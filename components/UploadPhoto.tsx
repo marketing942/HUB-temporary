@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Upload, X, Check } from 'lucide-react'
+import { useToast } from './ToastProvider'
 
 interface UploadPhotoProps {
   userId: string
@@ -11,23 +12,22 @@ interface UploadPhotoProps {
 
 export default function UploadPhoto({ userId, onSuccess }: UploadPhotoProps) {
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState('')
   const [preview, setPreview] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
+  const { showToast } = useToast()
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
 
     if (f.size > 2 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo de 2MB.')
+      showToast('Arquivo muito grande. Máximo de 2MB.', 'error')
       return
     }
 
     setFile(f)
-    setError('')
     const reader = new FileReader()
     reader.onloadend = () => setPreview(reader.result as string)
     reader.readAsDataURL(f)
@@ -36,22 +36,23 @@ export default function UploadPhoto({ userId, onSuccess }: UploadPhotoProps) {
   async function handleUpload() {
     if (!file) return
     setUploading(true)
-    setError('')
 
+    // O path é relativo ao bucket "avatars": {userId}.{ext}
     const ext = file.name.split('.').pop() ?? 'jpg'
-    const path = `avatars/${userId}.${ext}`
+    const path = `${userId}.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(path, file, { upsert: true, contentType: file.type })
 
     if (uploadError) {
-      setError('Erro ao fazer upload. Tente novamente.')
+      showToast('Erro ao fazer upload. Tente novamente.', 'error')
       setUploading(false)
       return
     }
 
     const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    showToast('Foto atualizada com sucesso!')
     onSuccess(data.publicUrl)
     setUploading(false)
   }
@@ -59,7 +60,6 @@ export default function UploadPhoto({ userId, onSuccess }: UploadPhotoProps) {
   function reset() {
     setPreview(null)
     setFile(null)
-    setError('')
     if (inputRef.current) inputRef.current.value = ''
   }
 
@@ -113,8 +113,6 @@ export default function UploadPhoto({ userId, onSuccess }: UploadPhotoProps) {
         onChange={handleFileChange}
         className="hidden"
       />
-
-      {error && <p className="text-red-400 text-sm">{error}</p>}
     </div>
   )
 }

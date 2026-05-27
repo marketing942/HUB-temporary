@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { LogOut, User as UserIcon } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
+import RefreshButton from './RefreshButton'
 
 interface HeaderProps {
   user: User
@@ -29,7 +30,9 @@ export default function Header({ user }: HeaderProps) {
           Hoje é dia de bater a meta
         </p>
 
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-1 ml-auto">
+          <RefreshButton />
+
           <Link
             href="/perfil"
             className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-cppem-card transition-colors"
