@@ -1,4 +1,5 @@
 import { google } from 'googleapis'
+import { unstable_cache } from 'next/cache'
 import { SaleRecord } from '@/types'
 import { parseBrazilianCurrency, normalizeDate } from './formatters'
 
@@ -62,15 +63,14 @@ function mapHeader(h: string): string {
   return COLUMN_MAP[norm] ?? norm
 }
 
-export async function getSheetData(): Promise<SaleRecord[]> {
-  // Verifica credenciais antes de tentar conectar
+async function fetchSheetData(): Promise<SaleRecord[]> {
   if (
     !SHEET_ID ||
     !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
     !process.env.GOOGLE_PRIVATE_KEY
   ) {
     console.warn(
-      '[googleSheets] Credenciais não configuradas. Defina GOOGLE_SHEETS_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL e GOOGLE_PRIVATE_KEY.'
+      '[googleSheets] Credenciais não configuradas. Defina as variáveis de ambiente.'
     )
     return []
   }
@@ -123,6 +123,18 @@ export async function getSheetData(): Promise<SaleRecord[]> {
     return []
   }
 }
+
+// Cache de 5 minutos via Next.js Data Cache
+// Todos os usuários compartilham o mesmo cache da planilha inteira;
+// a filtragem por e-mail acontece depois, em memória.
+export const getSheetData = unstable_cache(
+  fetchSheetData,
+  ['cppem-sheet-data'],
+  {
+    revalidate: 300,
+    tags: ['sheet-data'],
+  }
+)
 
 export async function getDataByEmail(email: string): Promise<SaleRecord[]> {
   const all = await getSheetData()
