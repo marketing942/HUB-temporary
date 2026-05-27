@@ -11,6 +11,13 @@ export default async function PerfilPage() {
   const records = await getDataByEmail(email)
   const data = calculateDashboard(records)
 
+  // Prioriza avatar do Supabase (definido via upload)
+  // Fallback para foto_url na planilha
+  const fotoUrl =
+    (session.user.user_metadata?.avatar_url as string | undefined) ||
+    data.user.foto_url ||
+    undefined
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
       <div>
@@ -22,7 +29,7 @@ export default async function PerfilPage() {
         nome={data.user.nome}
         cargo={data.user.cargo}
         email={email}
-        fotoUrl={data.user.foto_url}
+        fotoUrl={fotoUrl}
         userId={session.user.id}
       />
 

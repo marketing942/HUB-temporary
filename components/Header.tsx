@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import { LogOut } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
+import Image from 'next/image'
 import RefreshButton from './RefreshButton'
 
 interface HeaderProps {
@@ -22,6 +23,7 @@ export default function Header({ user }: HeaderProps) {
   }
 
   const initials = (user.email ?? 'US').slice(0, 2).toUpperCase()
+  const avatarUrl = user.user_metadata?.avatar_url as string | undefined
 
   return (
     <header className="sticky top-0 z-30 bg-cppem-bg/90 backdrop-blur-md border-b border-cppem-border px-4 sm:px-6 py-3">
@@ -37,8 +39,18 @@ export default function Header({ user }: HeaderProps) {
             href="/perfil"
             className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-cppem-card transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-cppem-green/15 border border-cppem-green/25 flex items-center justify-center text-cppem-neon text-xs font-black">
-              {initials}
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-cppem-green/25 bg-cppem-green/15 flex items-center justify-center flex-shrink-0">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={initials}
+                  width={32}
+                  height={32}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <span className="text-cppem-neon text-xs font-black">{initials}</span>
+              )}
             </div>
             <span className="text-sm text-gray-500 hidden sm:block max-w-[180px] truncate">
               {user.email}

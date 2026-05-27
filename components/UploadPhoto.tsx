@@ -37,7 +37,6 @@ export default function UploadPhoto({ userId, onSuccess }: UploadPhotoProps) {
     if (!file) return
     setUploading(true)
 
-    // O path é relativo ao bucket "avatars": {userId}.{ext}
     const ext = file.name.split('.').pop() ?? 'jpg'
     const path = `${userId}.${ext}`
 
@@ -52,8 +51,13 @@ export default function UploadPhoto({ userId, onSuccess }: UploadPhotoProps) {
     }
 
     const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    const publicUrl = data.publicUrl
+
+    // Persiste o URL no metadata do usuário para exibição em todo o app
+    await supabase.auth.updateUser({ data: { avatar_url: publicUrl } })
+
     showToast('Foto atualizada com sucesso!')
-    onSuccess(data.publicUrl)
+    onSuccess(publicUrl)
     setUploading(false)
   }
 
