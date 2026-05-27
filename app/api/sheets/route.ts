@@ -3,6 +3,8 @@ import { createServerClient } from '@supabase/ssr'
 import { getDataByEmail } from '@/lib/googleSheets'
 import { calculateDashboard } from '@/lib/dashboardCalculations'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
